@@ -1,4 +1,5 @@
 const Joi = require("joi");
+const checkFieldType = require("../helpers/selectMissingKey");
 
 const postSchema = Joi.object({
   name: Joi.string().min(3).max(30).required(),
@@ -20,7 +21,10 @@ const putSchema = Joi.object({
 const addPostValidation = (req, res, next) => {
   const validation = postSchema.validate({ ...req.body });
   if (validation.error) {
-    return res.status(400).json({ message: "missing required name field" });
+    const missingFields = checkFieldType(validation.error.details[0].message);
+    return res
+      .status(400)
+      .json({ message: `missing required ${missingFields} field` });
   }
 
   next();
