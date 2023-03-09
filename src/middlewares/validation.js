@@ -18,6 +18,10 @@ const putSchema = Joi.object({
   phone: Joi.string(),
 }).min(1);
 
+const patchSchema = Joi.object({
+  favorite: Joi.boolean().required(),
+});
+
 const addPostValidation = (req, res, next) => {
   const validation = postSchema.validate({ ...req.body });
   if (validation.error) {
@@ -40,7 +44,18 @@ const addPutValidation = (req, res, next) => {
   next();
 };
 
+const addPatchValidation = (req, res, next) => {
+  const validation = patchSchema.validate({ ...req.body });
+
+  if (validation.error) {
+    return res.status(400).json({ message: "missing field favorite" });
+  }
+
+  next();
+};
+
 module.exports = {
   addPostValidation,
   addPutValidation,
+  addPatchValidation,
 };
