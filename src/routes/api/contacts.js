@@ -3,6 +3,7 @@ const express = require("express");
 const {
   addPostValidation,
   addPutValidation,
+  addPatchValidation,
 } = require("../../middlewares/validation");
 
 const {
@@ -11,18 +12,27 @@ const {
   addNewContact,
   deleteContact,
   editContact,
+  editContactStatus,
 } = require("../../controllers/contactsController");
+
+const asyncWrapper = require("../../helpers/asyncWrapper");
 
 const router = express.Router();
 
-router.get("/", getAllContacts);
+router.get("/", asyncWrapper(getAllContacts));
 
-router.get("/:contactId", getCurrentContactById);
+router.get("/:contactId", asyncWrapper(getCurrentContactById));
 
-router.post("/", addPostValidation, addNewContact);
+router.post("/", addPostValidation, asyncWrapper(addNewContact));
 
-router.delete("/:contactId", deleteContact);
+router.delete("/:contactId", asyncWrapper(deleteContact));
 
-router.put("/:contactId", addPutValidation, editContact);
+router.put("/:contactId", addPutValidation, asyncWrapper(editContact));
+
+router.patch(
+  "/:contactId/favorite",
+  addPatchValidation,
+  asyncWrapper(editContactStatus)
+);
 
 module.exports = router;
