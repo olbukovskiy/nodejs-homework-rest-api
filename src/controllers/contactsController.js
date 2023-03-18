@@ -7,52 +7,93 @@ const {
   updateStatusContact,
 } = require("../models/contacts");
 
+const { WrongParametersError, NotFoundInfo } = require("../helpers/errors");
+const checkFavoriteType = require("../helpers/checkType");
+
 const getAllContacts = async (req, res) => {
-  const contacts = await listContacts();
+  let { limit, page, favorite } = req.query;
+
+  limit = !limit ? 20 : parseInt(limit);
+  page = !page ? 1 : parseInt(page);
+
+  const paginationParams = {
+    skip: limit * page - limit,
+    limit: limit,
+  };
+
+  const searchParams = {
+    owner: req.user._id,
+  };
+
+  if (favorite) {
+    searchParams.favorite = checkFavoriteType(favorite);
+  }
+
+  const contacts = await listContacts(paginationParams, searchParams);
   res.status(200).json(contacts);
 };
 
 const getCurrentContactById = async (req, res) => {
-  const contact = await getContactById(req.params.contactId);
-  if (!contact) return res.status(404).json({ message: "Not found" });
+  const { contactId } = req.params;
+  const contact = await getContactById(contactId, req.user);
+
+  if (!contact) {
+    throw new NotFoundInfo("Not found");
+  }
+
   res.status(200).json(contact);
 };
 
 const addNewContact = async (req, res) => {
-  const createdContact = await addContact(req.body);
+  const { body, user } = req;
+  const createdContact = await addContact(body, user);
 
-  createdContact
-    ? res.status(201).json(createdContact)
-    : res.status(400).json({
-        message: "contact with that name is already present in your contacts",
-      });
+  if (!createdContact) {
+    throw new WrongParametersError(
+      "contact with that name is already present in your contacts"
+    );
+  }
+
+  res.status(201).json(createdContact);
 };
 
 const deleteContact = async (req, res) => {
-  const isContactRemoved = await removeContact(req.params.contactId);
+  const { contactId } = req.params;
+  const isContactRemoved = await removeContact(contactId, req.user);
 
-  isContactRemoved
-    ? res.status(200).json({ message: "contact deleted" })
-    : res.status(404).json({ message: "Not found" });
+  if (!isContactRemoved) {
+    throw new NotFoundInfo("Not found");
+  }
+
+  res.status(200).json({ message: "contact deleted" });
 };
 
 const editContact = async (req, res) => {
-  const updatedContact = await updateContact(req.params.contactId, req.body);
+  const {
+    body,
+    params: { contactId },
+  } = req;
+  const updatedContact = await updateContact(contactId, body, req.user);
 
-  updatedContact
-    ? res.status(200).json(updatedContact)
-    : res.status(404).json({ message: "Not found" });
+  if (!updatedContact) {
+    throw new NotFoundInfo("Not found");
+  }
+
+  res.status(200).json(updatedContact);
 };
 
 const editContactStatus = async (req, res) => {
-  const updatedContact = await updateStatusContact(
-    req.params.contactId,
-    req.body
-  );
+  const {
+    body,
+    params: { contactId },
+  } = req;
+  const updatedContact = await updateStatusContact(contactId, body, req.user);
 
-  updatedContact
-    ? res.status(200).json(updatedContact)
-    : res.status(404).json({ message: "Not found" });
+  if (!updatedContact) {
+    throw new NotFoundInfo("Not found");
+  }
+
+  res.status(200).json(updatedContact);
 };
 
 module.exports = {

@@ -4,6 +4,7 @@ const {
   addPostValidation,
   addPutValidation,
   addPatchValidation,
+  getAllPostsValidation,
 } = require("../../middlewares/validation");
 
 const {
@@ -17,9 +18,13 @@ const {
 
 const asyncWrapper = require("../../helpers/asyncWrapper");
 
+const authMiddleware = require("../../middlewares/auth");
+
 const router = express.Router();
 
-router.get("/", asyncWrapper(getAllContacts));
+router.use(authMiddleware);
+
+router.get("/", getAllPostsValidation, asyncWrapper(getAllContacts));
 
 router.get("/:contactId", asyncWrapper(getCurrentContactById));
 
