@@ -4,6 +4,10 @@ require("dotenv").config();
 const { UnauthorizedError } = require("../helpers/errors");
 
 const auth = async (req, res, next) => {
+  if (!req.headers.authorization) {
+    next(new UnauthorizedError("Not authorized"));
+  }
+
   const [, token] = req.headers.authorization.split(" ");
 
   if (!token) {
