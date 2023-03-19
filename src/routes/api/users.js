@@ -28,6 +28,6 @@ router.post("/login", authValidation, asyncWrapper(loginExistingUser));
 
 router.post("/logout", authMiddleware, asyncWrapper(logOutExistingUser));
 
-router.get("/current", authMiddleware, asyncWrapper(getExistingUserData));
+router.post("/current", authMiddleware, asyncWrapper(getExistingUserData));
 
 module.exports = router;

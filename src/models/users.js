@@ -2,11 +2,7 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 const User = require("../db/usersSchema");
-const {
-  ConflictFieldError,
-  WrongParametersError,
-  UnauthorizedError,
-} = require("../helpers/errors");
+const { ConflictFieldError, UnauthorizedError } = require("../helpers/errors");
 
 const registerUser = async (body) => {
   const isUserExist = await User.findOne({ email: body.email });
@@ -23,7 +19,7 @@ const loginUser = async (email, password) => {
   const isUserExist = await User.findOne({ email });
 
   if (!isUserExist || !(await isUserExist.isPasswordValid(password))) {
-    throw new WrongParametersError(`Email or password is wrong`);
+    throw new UnauthorizedError(`Email or password is wrong`);
   }
 
   const payload = { id: isUserExist.id };
