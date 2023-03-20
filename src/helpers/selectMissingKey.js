@@ -1,5 +1,5 @@
 function checkFieldType(str) {
-  const keys = ["email", "phone", "name"];
+  const keys = ["email", "phone", "name", "password"];
   const matchingKeys = [];
 
   keys.forEach((key) => {
