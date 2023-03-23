@@ -5,6 +5,7 @@ const {
   logOutExistingUser,
   getExistingUserData,
   changeSubscriptionStatus,
+  changeUserAvatar,
 } = require("../../controllers/usersController");
 const {
   authValidation,
@@ -12,6 +13,7 @@ const {
 } = require("../../middlewares/validation");
 const asyncWrapper = require("../../helpers/asyncWrapper");
 const authMiddleware = require("../../middlewares/auth");
+const loadPictureMiddleware = require("../../middlewares/loadPicture");
 
 const router = express.Router();
 
@@ -29,5 +31,12 @@ router.post("/login", authValidation, asyncWrapper(loginExistingUser));
 router.post("/logout", authMiddleware, asyncWrapper(logOutExistingUser));
 
 router.post("/current", authMiddleware, asyncWrapper(getExistingUserData));
+
+router.patch(
+  "/avatars",
+  authMiddleware,
+  loadPictureMiddleware.single("avatar"),
+  asyncWrapper(changeUserAvatar)
+);
 
 module.exports = router;
