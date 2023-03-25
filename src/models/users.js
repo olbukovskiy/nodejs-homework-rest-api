@@ -2,12 +2,10 @@ const jwt = require("jsonwebtoken");
 const gravatar = require("gravatar");
 const path = require("path");
 const fs = require("fs").promises;
-const { v4: uniqueName } = require("uuid");
 require("dotenv").config();
 
 const resizeAvatar = require("../helpers/resizeAvatar");
 
-const TMP_PATH = path.resolve("./tmp");
 const AVATARS_PATH = path.resolve("./public/avatars");
 
 const User = require("../db/usersSchema");
@@ -77,14 +75,14 @@ const changeUserSubscriptionStatus = async (_id, subscription) => {
 };
 
 const changeAvatar = async (fileData, _id) => {
-  const avatarName = uniqueName();
-  const avatarPath = path.join(TMP_PATH, fileData.originalname);
-  const avatarsPath = path.join(AVATARS_PATH, `${avatarName}.jpg`);
-  const avatarURL = `/avatars/${avatarName}.jpg`;
+  const { originalname, path: temporaryName } = fileData;
+  const avatarName = `${_id}_${originalname}`;
+  const avatarPath = path.join(AVATARS_PATH, avatarName);
+  const avatarURL = `/avatars/${avatarName}`;
 
-  await resizeAvatar(avatarPath);
+  await resizeAvatar(temporaryName);
 
-  await fs.rename(avatarPath, avatarsPath);
+  await fs.rename(temporaryName, avatarPath);
 
   const isUserExist = await User.findOne({ _id });
 
