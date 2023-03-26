@@ -33,7 +33,7 @@ describe("POST /login", () => {
     const { email } = testUserData;
     await User.findOneAndRemove({ email });
     mongoose.set("strictQuery", true);
-    await mongoose.disconnect;
+    mongoose.disconnect();
   });
 
   test("should return a token and user object with email and subscription as strings", async () => {
