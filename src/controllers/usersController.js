@@ -4,7 +4,10 @@ const {
   logOutUser,
   getUserData,
   changeUserSubscriptionStatus,
+  changeAvatar,
 } = require("../models/users");
+
+const { WrongParametersError } = require("../helpers/errors");
 
 const registerNewUser = async (req, res, next) => {
   const { email, subscription } = await registerUser(req.body);
@@ -57,10 +60,19 @@ const changeSubscriptionStatus = async (req, res, next) => {
   });
 };
 
+const changeUserAvatar = async (req, res, next) => {
+  if (!req.file) throw new WrongParametersError("File unexisted");
+
+  const { avatarURL } = await changeAvatar(req.file, req.user._id);
+
+  res.status(200).json({ avatarURL });
+};
+
 module.exports = {
   registerNewUser,
   loginExistingUser,
   logOutExistingUser,
   getExistingUserData,
   changeSubscriptionStatus,
+  changeUserAvatar,
 };
