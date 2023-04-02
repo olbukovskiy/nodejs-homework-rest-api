@@ -5,6 +5,8 @@ const {
   getUserData,
   changeUserSubscriptionStatus,
   changeAvatar,
+  verifyUser,
+  reVerification,
 } = require("../models/users");
 
 const { WrongParametersError } = require("../helpers/errors");
@@ -68,6 +70,22 @@ const changeUserAvatar = async (req, res, next) => {
   res.status(200).json({ avatarURL });
 };
 
+const verifyUserController = async (req, res, next) => {
+  const { verificationToken } = req.params;
+
+  await verifyUser(verificationToken);
+
+  res.status(200).json({ message: "Verification successful" });
+};
+
+const reVerificationController = async (req, res, next) => {
+  const { email } = req.body;
+
+  await reVerification(email);
+
+  res.status(200).json({ message: "Verification email sent" });
+};
+
 module.exports = {
   registerNewUser,
   loginExistingUser,
@@ -75,4 +93,6 @@ module.exports = {
   getExistingUserData,
   changeSubscriptionStatus,
   changeUserAvatar,
+  verifyUserController,
+  reVerificationController,
 };

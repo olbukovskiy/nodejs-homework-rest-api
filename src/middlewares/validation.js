@@ -43,6 +43,15 @@ const usersSchema = Joi.object({
   token: Joi.string(),
 });
 
+const verifySchema = Joi.object({
+  email: Joi.string()
+    .email({
+      minDomainSegments: 2,
+      tlds: { allow: ["com", "net"] },
+    })
+    .required(),
+});
+
 const getAllPostsValidation = (req, res, next) => {
   const validation = getSchema.validate({ ...req.query });
 
@@ -106,6 +115,16 @@ const userPatchValidation = (req, res, next) => {
   next();
 };
 
+const validateVerifyData = (req, res, next) => {
+  const validation = verifySchema.validate({ email: req.body.email });
+
+  if (validation.error) {
+    throw new ValidationError("missing required field email");
+  }
+
+  next();
+};
+
 module.exports = {
   addPostValidation,
   addPutValidation,
@@ -113,4 +132,5 @@ module.exports = {
   authValidation,
   userPatchValidation,
   getAllPostsValidation,
+  validateVerifyData,
 };
