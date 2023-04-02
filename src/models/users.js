@@ -1,25 +1,15 @@
 const jwt = require("jsonwebtoken");
 const gravatar = require("gravatar");
 const path = require("path");
-const { v4: createToken } = require("uuid");
-const sgMail = require("@sendgrid/mail");
 const fs = require("fs").promises;
 require("dotenv").config();
-
-sgMail.setApiKey(process.env.API_KEY);
 
 const resizeAvatar = require("../helpers/resizeAvatar");
 
 const AVATARS_PATH = path.resolve("./public/avatars");
 
 const User = require("../db/usersSchema");
-const {
-  ConflictFieldError,
-  UnauthorizedError,
-  NotFoundInfo,
-  WrongParametersError,
-} = require("../helpers/errors");
-const sendVerificationLink = require("../helpers/generateAndSendToken");
+const { ConflictFieldError, UnauthorizedError } = require("../helpers/errors");
 
 const registerUser = async (body) => {
   const isUserExist = await User.findOne({ email: body.email });
@@ -27,11 +17,9 @@ const registerUser = async (body) => {
   if (isUserExist) {
     throw new ConflictFieldError("Email in use");
   }
-  const verificationToken = createToken();
-  const avatarURL = gravatar.url(body.email, { s: 250, protocol: "http" });
-  const user = new User({ ...body, avatarURL, verificationToken });
 
-  await sendVerificationLink(body.email, verificationToken);
+  const avatarURL = gravatar.url(body.email, { s: 250, protocol: "http" });
+  const user = new User({ ...body, avatarURL });
 
   return await user.save();
 };
@@ -41,12 +29,6 @@ const loginUser = async (email, password) => {
 
   if (!isUserExist || !(await isUserExist.isPasswordValid(password))) {
     throw new UnauthorizedError(`Email or password is wrong`);
-  }
-
-  const isUserVerified = await User.findOne({ email, verify: true });
-
-  if (!isUserVerified) {
-    throw new WrongParametersError("User still not verified");
   }
 
   const payload = { id: isUserExist.id };
@@ -114,43 +96,6 @@ const changeAvatar = async (fileData, _id) => {
   return updatedUser;
 };
 
-const verifyUser = async (verificationToken) => {
-  const isUserExists = await User.findOne({ verificationToken });
-
-  if (!isUserExists) {
-    throw new NotFoundInfo("User not found");
-  }
-
-  const { email } = await User.findOneAndUpdate(
-    { verificationToken },
-    { $set: { verificationToken: null, verify: true } }
-  );
-
-  const updatedUser = await User.findOne({ email });
-
-  return updatedUser;
-};
-
-const reVerification = async (email) => {
-  const isUserExists = await User.findOne({ email });
-
-  if (!isUserExists) {
-    throw new NotFoundInfo("User not found");
-  }
-
-  const isUserVerified = await User.findOne({ email, verify: false });
-
-  if (!isUserVerified) {
-    throw new WrongParametersError("Verification has already been passed");
-  }
-
-  const { verificationToken } = isUserVerified;
-
-  await sendVerificationLink(email, verificationToken);
-
-  return true;
-};
-
 module.exports = {
   registerUser,
   loginUser,
@@ -158,6 +103,4 @@ module.exports = {
   getUserData,
   changeUserSubscriptionStatus,
   changeAvatar,
-  verifyUser,
-  reVerification,
 };

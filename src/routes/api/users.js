@@ -6,13 +6,10 @@ const {
   getExistingUserData,
   changeSubscriptionStatus,
   changeUserAvatar,
-  verifyUserController,
-  reVerificationController,
 } = require("../../controllers/usersController");
 const {
   authValidation,
   userPatchValidation,
-  validateVerifyData,
 } = require("../../middlewares/validation");
 const asyncWrapper = require("../../helpers/asyncWrapper");
 const authMiddleware = require("../../middlewares/auth");
@@ -40,14 +37,6 @@ router.patch(
   authMiddleware,
   loadPictureMiddleware.single("avatar"),
   asyncWrapper(changeUserAvatar)
-);
-
-router.get("/verify/:verificationToken", asyncWrapper(verifyUserController));
-
-router.post(
-  "/verify",
-  validateVerifyData,
-  asyncWrapper(reVerificationController)
 );
 
 module.exports = router;
